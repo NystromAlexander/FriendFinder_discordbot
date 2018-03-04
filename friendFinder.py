@@ -126,7 +126,7 @@ async def lonely(ctx) :
                 if found is False :
                     await bot.reply("I found you some friends that are online!")
                     found = True
-            await bot.reply("Friend: {} \n Server: {} \n Channel: {}".format(nicks[name], connection[0], connection[1]))
+                await bot.reply("Friend: {} \n Server: {} \n Channel: {}".format(nicks[name], connection[0], connection[1]))
         if found is False :
             await bot.reply("I'm sorry I could not find any friends online! :frowning2:")
 
