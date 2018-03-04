@@ -1,20 +1,23 @@
 import discord
 import asyncio
 import re
+import json
 from discord.ext import commands
 
-# client = discord.Client()
+nicknames = {}
+
 description = '''My purpose is to find which server your friends are Connected to.
-Only requirement is that I'm precent on that server.'''
+Only requirement is that I'm present on that server.'''
 bot = commands.Bot(command_prefix='!', description=description)
 
-nicknames = {}
+master = 'replace with id of owner'
 
 async def on_ready():
     print('Logged in as')
     print(bot.user.name)
     print(bot.user.id)
     print('------')
+    read_nicknames()
 
 bot.add_listener(on_ready)
 
@@ -50,7 +53,8 @@ async def addNick(ctx, name : str, nickname : str) :
         nicknames[user] = {}
 
     nicknames[user][nickname] = name.casefold()
-    # print(nicknames)
+    backup_nicknames()
+    print(nicknames)
     await bot.reply("You have given {} the nickname {}".format(name, nickname))
 
 
@@ -58,6 +62,7 @@ async def addNick(ctx, name : str, nickname : str) :
 @bot.command(pass_context=True, description='Lists your nicknames.')
 async def listNicks(ctx) :
     user = ctx.message.author.id
+    print(nicknames)
     if user not in nicknames :
         await bot.reply("You do not have any nicknames rigistred.")
         return
@@ -98,7 +103,7 @@ async def rmNick(ctx, nickname : str) :
 
     tmp_name = nicks[nickname]
     del nicks[nickname]
-
+    backup_nicknames()
     if nickname in nicks :
         print("Could not remove {} from the dictionary {}".format(nickname, nicks))
     else :
@@ -121,9 +126,20 @@ async def lonely(ctx) :
                 if found is False :
                     await bot.reply("I found you some friends that are online!")
                     found = True
-                    await bot.reply("Friend: {} \n Server: {} \n Channel: {}".format(nicks[name], connection[0], connection[1]))
-            if found is False :
-                await bot.reply("I'm sorry I could not find any friends online! :frowning2:")
+            await bot.reply("Friend: {} \n Server: {} \n Channel: {}".format(nicks[name], connection[0], connection[1]))
+        if found is False :
+            await bot.reply("I'm sorry I could not find any friends online! :frowning2:")
+
+
+
+@bot.command(pass_context=True)
+async def backup(ctx) :
+    user = ctx.message.author.id
+    if user != master :
+        await bot.reply("You do not have permission")
+        return
+    backup_nicknames()
+
 
 
 def find_connection(name, desc):
@@ -149,5 +165,17 @@ def find_connection(name, desc):
     else :
         return connection
 
+def backup_nicknames() :
+    nick_json = json.dumps(nicknames)
+    nick_file = open("nicknames.json","w")
+    nick_file.write(nick_json)
+    nick_file.close()
+
+def read_nicknames() :
+    global nicknames
+    nick_file = open("nicknames.json", "r")
+    nicknames = json.load(nick_file)
+    print(nicknames)
+    nick_file.close()
 
 bot.run('token')
